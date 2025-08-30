@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Professional Library System</title>
+<style>
+body {
+    font-family:'Segoe UI', sans-serif;
+    margin:0; padding:0;
+    background: linear-gradient(135deg,#6a11cb 0%,#2575fc 100%);
+    display:flex; justify-content:center; align-items:center; min-height:100vh;
+    animation: bgShift 15s ease-in-out infinite alternate;
+}
+@keyframes bgShift {
+    0% {background-position:0% 50%;}
+    50% {background-position:100% 50%;}
+    100% {background-position:0% 50%;}
+}
+.container {width:100%; max-width:1200px; margin:20px auto; padding:20px; background:white; border-radius:8px; box-shadow:0 0 15px rgba(0,0,0,0.3);}
+header {background:#007acc; color:white; padding:15px; text-align:center; font-size:1.8em; border-radius:8px 8px 0 0;}
+nav {display:flex; flex-wrap:wrap; justify-content:space-around; background:#eee; padding:10px; margin-bottom:20px;}
+nav button {margin:5px; padding:8px 12px; border:none; border-radius:5px; cursor:pointer; transition:0.3s;}
+nav button:hover {background:#007acc; color:white;}
+.hidden {display:none;}
+.admin-only, .staff-only, .user-only {display:none;}
+table {width:100%; border-collapse:collapse; margin-top:10px;}
+th, td {border:1px solid #ccc; padding:10px; text-align:left;}
+.alert {padding:10px; margin:10px 0; border-radius:5px;}
+.alert-success {background:#d4edda; color:#155724;}
+.alert-error {background:#f8d7da; color:#721c24;}
+#loginSection {
+    width:350px; padding:30px; background:rgba(255,255,255,0.1); backdrop-filter:blur(10px);
+    border-radius:15px; box-shadow:0 15px 40px rgba(0,0,0,0.4); text-align:center; color:white;
+    animation: fadeIn 1s ease forwards;
+}
+@keyframes fadeIn {0% {opacity:0; transform: translateY(-20px);} 100% {opacity:1; transform: translateY(0);}}
+.login-logo {width:120px; margin-bottom:20px; border-radius:15px; transition: transform 0.3s;}
+.login-logo:hover {transform: rotate(10deg) scale(1.1);}
+#loginSection input {width:100%; padding:12px; margin:10px 0; border-radius:10px; border:none; font-size:1em; transition:0.3s;}
+#loginSection input:focus {outline:none; transform: scale(1.05); box-shadow:0 0 10px #fff;}
+#loginSection button {width:100%; padding:12px; margin-top:10px; font-size:1em; color:#fff; background: linear-gradient(45deg,#ff512f,#dd2476); border:none; border-radius:10px; cursor:pointer; transition:0.3s;}
+#loginSection button:hover {transform: scale(1.05); box-shadow:0 0 15px #ff512f;}
+#loginAlert {margin-top:10px; font-weight:bold;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginSection">
+    <img src="https://i.ibb.co/6RP6yGf/library-logo.png" alt="Library Logo" class="login-logo">
+    <h2>Login / Enter as User</h2>
+    <input type="text" id="username" placeholder="Username (admin/staff) or leave blank for user)">
+    <input type="password" id="password" placeholder="Password (leave blank for user)">
+    <button onclick="login()">Login / Continue as User</button>
+    <p id="loginAlert" class="alert hidden"></p>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp" class="hidden container">
+<header>Midroc Gold Employees Library</header>
+
+<nav>
+    <button onclick="showSection('booksSection')">Books</button>
+    <button class="admin-only staff-only" onclick="showSection('membersSection')">Members</button>
+    <button class="admin-only staff-only" onclick="showSection('transactionsSection')">Borrow/Return</button>
+    <button class="admin-only staff-only" onclick="showSection('reportsSection')">Reports</button>
+    <button class="admin-only" onclick="showSection('userRequestsSection')">User Requests</button>
+    <button class="user-only" onclick="showSection('requestSection')">Request Book</button>
+    <button class="user-only" onclick="showSection('commentSection')">Comments</button>
+    <button onclick="logout()">Logout</button>
+</nav>
+
+<!-- BOOKS -->
+<div id="booksSection">
+<h2>Books</h2>
+<div class="admin-only">
+<input type="text" id="bookTitle" placeholder="Title">
+<input type="text" id="bookAuthor" placeholder="Author">
+<input type="text" id="bookCategory" placeholder="Category">
+<input type="text" id="bookISBN" placeholder="ISBN">
+<input type="number" id="bookCopies" placeholder="Copies">
+<button onclick="addBook()">Add Book</button>
+</div>
+<table id="booksTable"><thead><tr><th>Title</th><th>Author</th><th>Category</th><th>ISBN</th><th>Copies</th><th>Actions</th></tr></thead><tbody></tbody></table>
+</div>
+
+<!-- MEMBERS -->
+<div id="membersSection" class="hidden admin-only staff-only">
+<h2>Members Management</h2>
+<div class="admin-only">
+<input type="text" id="memberName" placeholder="Full Name">
+<input type="text" id="memberEmail" placeholder="Email">
+<input type="text" id="memberPhone" placeholder="Phone">
+<button onclick="addMember()">Add Member</button>
+</div>
+<table id="membersTable"><thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Actions</th></tr></thead><tbody></tbody></table>
+</div>
+
+<!-- TRANSACTIONS -->
+<div id="transactionsSection" class="hidden admin-only staff-only">
+<h2>Borrow / Return Books</h2>
+<select id="transactionMember"></select>
+<select id="transactionBook"></select>
+<input type="date" id="dueDate">
+<button onclick="borrowBook()">Borrow Book</button>
+<h3>Current Borrowings</h3>
+<table id="transactionsTable"><thead><tr><th>Member</th><th>Book</th><th>Due Date</th><th>Status</th><th>Actions</th></tr></thead><tbody></tbody></table>
+</div>
+
+<!-- REPORTS -->
+<div id="reportsSection" class="hidden admin-only staff-only">
+<h2>Reports</h2>
+<button onclick="generateOverdueReport()">Overdue Books</button>
+<button onclick="generateTopBooksReport()">Top Borrowed Books</button>
+<div id="reportOutput"></div>
+</div>
+
+<!-- ADMIN USER REQUESTS -->
+<div id="userRequestsSection" class="hidden admin-only">
+<h2>User Book Requests</h2>
+<table id="userRequestsTable"><thead><tr><th>User Name</th><th>Book Requested</th><th>Date</th></tr></thead><tbody></tbody></table>
+</div>
+
+<!-- USER REQUEST -->
+<div id="requestSection" class="hidden user-only">
+<h2>Request a Book</h2>
+<input type="text" id="requestName" placeholder="Your Name">
+<input type="text" id="requestBook" placeholder="Book Title">
+<button onclick="requestBook()">Submit Request</button>
+<p id="requestAlert" class="alert hidden"></p>
+</div>
+
+<!-- USER COMMENTS -->
+<div id="commentSection" class="hidden user-only">
+<h2>Comment on Services</h2>
+<input type="text" id="commentName" placeholder="Your Name">
+<textarea id="commentText" placeholder="Your comment"></textarea>
+<button onclick="addComment()">Submit Comment</button>
+<p id="commentAlert" class="alert hidden"></p>
+<h3>Comments</h3>
+<div id="commentsList"></div>
+</div>
+
+<script>
+// USERS
+const users=[{username:'admin',password:'admin',role:'admin'},{username:'staff',password:'staff',role:'staff'}];
+let currentUser=null;
+let books=JSON.parse(localStorage.getItem('books'))||[];
+let members=JSON.parse(localStorage.getItem('members'))||[];
+let transactions=JSON.parse(localStorage.getItem('transactions'))||[];
+let requests=JSON.parse(localStorage.getItem('requests'))||[];
+let comments=JSON.parse(localStorage.getItem('comments'))||[];
+
+// LOGIN & LOGOUT
+function login(){
+const username=document.getElementById('username').value.trim();
+const password=document.getElementById('password').value.trim();
+const alertBox=document.getElementById('loginAlert');
+if(username && password){
+let u=users.find(u=>u.username===username && u.password===password);
+if(!u){alertBox.textContent='Invalid credentials!'; alertBox.className='alert alert-error'; alertBox.classList.remove('hidden'); return;}
+currentUser=u;
+}else{currentUser={role:'user'};}
+document.getElementById('loginSection').classList.add('hidden');
+document.getElementById('mainApp').classList.remove('hidden');
+if(currentUser.role==='admin'){
+document.querySelectorAll('.admin-only').forEach(el=>el.style.display='block');
+document.querySelectorAll('.staff-only').forEach(el=>el.style.display='none');
+document.querySelectorAll('.user-only').forEach(el=>el.style.display='none');
+showSection('booksSection'); updateUserRequestsTable();
+} else if(currentUser.role==='staff'){
+document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
+document.querySelectorAll('.staff-only').forEach(el=>el.style.display='block');
+document.querySelectorAll('.user-only').forEach(el=>el.style.display='none');
+showSection('booksSection');
+} else {
+document.querySelectorAll('.admin-only').forEach(el=>el.style.display='none');
+document.querySelectorAll('.staff-only').forEach(el=>el.style.display='none');
+document.querySelectorAll('.user-only').forEach(el=>el.style.display='block');
+showSection('requestSection');
+}
+updateTables(); updateComments();
+document.getElementById('username').value=''; document.getElementById('password').value=''; alertBox.classList.add('hidden');
+}
+function logout(){currentUser=null; document.getElementById('mainApp').classList.add('hidden'); document.getElementById('loginSection').classList.remove('hidden');}
+
+// NAV
+function showSection(id){['booksSection','membersSection','transactionsSection','reportsSection','userRequestsSection','requestSection','commentSection'].forEach(s=>document.getElementById(s).classList.add('hidden')); document.getElementById(id).classList.remove('hidden');}
+
+// BOOKS
+function addBook(){if(currentUser.role!=='admin'){alert('Only admin can add');return;} const book={id:Date.now(),title:document.getElementById('bookTitle').value,author:document.getElementById('bookAuthor').value,category:document.getElementById('bookCategory').value,isbn:document.getElementById('bookISBN').value,copies:parseInt(document.getElementById('bookCopies').value),borrowed:0}; books.push(book); localStorage.setItem('books',JSON.stringify(books)); updateTables();}
+function deleteBook(id){if(currentUser.role!=='admin'){alert('Only admin can delete');return;} books=books.filter(b=>b.id!==id); localStorage.setItem('books',JSON.stringify(books)); updateTables();}
+
+// MEMBERS
+function addMember(){if(currentUser.role!=='admin'){alert('Only admin can add');return;} const member={id:Date.now(),name:document.getElementById('memberName').value,email:document.getElementById('memberEmail').value,phone:document.getElementById('memberPhone').value}; members.push(member); localStorage.setItem('members',JSON.stringify(members)); updateTables();}
+function deleteMember(id){if(currentUser.role!=='admin'){alert('Only admin can delete');return;} members=members.filter(m=>m.id!==id); localStorage.setItem('members',JSON.stringify(members)); updateTables();}
+
+// TRANSACTIONS
+function borrowBook(){if(!currentUser){alert('Unauthorized'); return;} const memberId=parseInt(document.getElementById('transactionMember').value); const bookId=parseInt(document.getElementById('transactionBook').value); const dueDate=document.getElementById('dueDate').value; const book=books.find(b=>b.id===bookId); if(book.copies-book.borrowed<=0){alert('No copies available'); return;} book.borrowed+=1; transactions.push({id:Date.now(),memberId,bookId,dueDate,status:'borrowed'}); localStorage.setItem('books',JSON.stringify(books)); localStorage.setItem('transactions',JSON.stringify(transactions)); updateTables();}
+function returnBook(id){const trans=transactions.find(t=>t.id===id); const book=books.find(b=>b.id===trans.bookId); book.borrowed-=1; trans.status='returned'; localStorage.setItem('books',JSON.stringify(books)); localStorage.setItem('transactions',JSON.stringify(transactions)); updateTables();}
+
+// TABLES
+function updateTables(){
+const tbodyBooks=document.querySelector('#booksTable tbody'); tbodyBooks.innerHTML=''; books.forEach(b=>{const tr=document.createElement('tr'); tr.innerHTML=`<td>${b.title}</td><td>${b.author}</td><td>${b.category}</td><td>${b.isbn}</td><td>${b.copies}</td><td>${currentUser.role==='admin'?`<button onclick="deleteBook(${b.id})">Delete</button>`:''}</td>`; tbodyBooks.appendChild(tr);});
+const tbodyMembers=document.querySelector('#membersTable tbody'); tbodyMembers.innerHTML=''; members.forEach(m=>{const tr=document.createElement('tr'); tr.innerHTML=`<td>${m.name}</td><td>${m.email}</td><td>${m.phone}</td><td>${currentUser.role==='admin'?`<button onclick="deleteMember(${m.id})">Delete</button>`:''}</td>`; tbodyMembers.appendChild(tr);});
+const tbodyTrans=document.querySelector('#transactionsTable tbody'); tbodyTrans.innerHTML=''; transactions.forEach(t=>{const member=members.find(m=>m.id===t.memberId)?.name||''; const book=books.find(b=>b.id===t.bookId)?.title||''; const tr=document.createElement('tr'); tr.innerHTML=`<td>${member}</td><td>${book}</td><td>${t.dueDate}</td><td>${t.status}</td><td>${t.status==='borrowed'?`<button onclick="returnBook(${t.id})">Return</button>`:''}</td>`; tbodyTrans.appendChild(tr);});
+document.getElementById('transactionBook').innerHTML=books.map(b=>`<option value="${b.id}">${b.title}</option>`).join('');
+document.getElementById('transactionMember').innerHTML=members.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');
+}
+
+// REPORTS
+function generateOverdueReport(){const today=new Date().toISOString().split('T')[0]; const overdue=transactions.filter(t=>t.status==='borrowed' && t.dueDate<today); let html='<h3>Overdue Books</h3><ul>'; overdue.forEach(t=>{const member=members.find(m=>m.id===t.memberId)?.name; const book=books.find(b=>b.id===t.bookId)?.title; html+=`<li>${book} borrowed by ${member} due ${t.dueDate}</li>`;}); html+='</ul>'; document.getElementById('reportOutput').innerHTML=html;}
+function generateTopBooksReport(){const counts={}; transactions.forEach(t=>{counts[t.bookId]=(counts[t.bookId]||0)+1;}); const top=Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,5); let html='<h3>Top Borrowed Books</h3><ul>'; top.forEach(([bookId,count])=>{const book=books.find(b=>b.id==bookId)?.title; html+=`<li>${book}: ${count} times</li>`;}); html+='</ul>'; document.getElementById('reportOutput').innerHTML=html;}
+
+// USER REQUESTS & COMMENTS
+function requestBook(){const name=document.getElementById('requestName').value.trim(); const bookTitle=document.getElementById('requestBook').value.trim(); const alertBox=document.getElementById('requestAlert'); if(!name||!bookTitle){alertBox.textContent='Fill all fields'; alertBox.className='alert alert-error'; alertBox.classList.remove('hidden'); return;} requests.push({name,bookTitle,date:new Date().toLocaleString()}); localStorage.setItem('requests',JSON.stringify(requests)); alertBox.textContent='Request submitted!'; alertBox.className='alert alert-success'; alertBox.classList.remove('hidden'); document.getElementById('requestName').value=''; document.getElementById('requestBook').value=''; updateUserRequestsTable();}
+function addComment(){const name=document.getElementById('commentName').value.trim(); const text=document.getElementById('commentText').value.trim(); const alertBox=document.getElementById('commentAlert'); if(!name||!text){alertBox.textContent='Fill all fields'; alertBox.className='alert alert-error'; alertBox.classList.remove('hidden'); return;} comments.push({name,text,date:new Date().toLocaleString()}); localStorage.setItem('comments',JSON.stringify(comments)); alertBox.textContent='Comment added!'; alertBox.className='alert alert-success'; alertBox.classList.remove('hidden'); document.getElementById('commentName').value=''; document.getElementById('commentText').value=''; updateComments();}
+function updateComments(){const div=document.getElementById('commentsList'); div.innerHTML=''; comments.slice().reverse().forEach(c=>{const p=document.createElement('p'); p.innerHTML=`<strong>${c.name}</strong> (${c.date}): ${c.text}`; div.appendChild(p);});}
+function updateUserRequestsTable(){const tbody=document.querySelector('#userRequestsTable tbody'); tbody.innerHTML=''; requests.slice().reverse().forEach(r=>{const tr=document.createElement('tr'); tr.innerHTML=`<td>${r.name}</td><td>${r.bookTitle}</td><td>${r.date}</td>`; tbody.appendChild(tr);});}
+
+// INIT
+updateTables(); updateComments(); updateUserRequestsTable();
+</script>
+</body>
+</html>
